@@ -6,6 +6,7 @@ import numpy as np
 import os
 from glob import glob
 
+from pose_metric_utils import compute_ate, compute_rpe
 
 def scale_lse_solver(X, Y):
     """Least-sqaure-error solver
@@ -591,6 +592,7 @@ class KittiEvalOdom():
             ate = self.compute_ATE(poses_gt, poses_result)
             seq_ate.append(ate)
             print("ATE (m): ", ate)
+            print("[NEW] ATE Replicated (m): ", compute_ate(poses_gt, poses_result))
 
             # Compute RPE
             rpe_trans, rpe_rot = self.compute_RPE(poses_gt, poses_result)
@@ -598,6 +600,8 @@ class KittiEvalOdom():
             seq_rpe_rot.append(rpe_rot)
             print("RPE (m): ", rpe_trans)
             print("RPE (deg): ", rpe_rot * 180 /np.pi)
+            rpe_t, rpe_rot = compute_rpe(poses_gt, poses_result)
+            print("[NEW] RPE Replicated (m): {} / (deg) {}".format(rpe_t, rpe_rot * 180 /np.pi))
 
             # Plotting
             self.plot_trajectory(poses_gt, poses_result, i)
