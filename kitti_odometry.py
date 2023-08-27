@@ -6,7 +6,7 @@ import numpy as np
 import os
 from glob import glob
 
-from pose_metric_utils import compute_ate, compute_rpe
+from pose_metric_utils import compute_ate, compute_rpe, compute_kitti_rels
 
 def scale_lse_solver(X, Y):
     """Least-sqaure-error solver
@@ -587,6 +587,11 @@ class KittiEvalOdom():
             print("Rotational error (deg/100m): ", ave_r_err/np.pi*180*100)
             ave_t_errs.append(ave_t_err)
             ave_r_errs.append(ave_r_err)
+
+            t_rep, r_rep = compute_kitti_rels(poses_gt, poses_result, per_100m_deg=True, transl_is_100p=True)
+            print("[NEW] KITTI REL EVAL: ",)
+            print(">>>>Translational error (%): ", t_rep)
+            print(">>>>Rotational error (deg/100m): ", r_rep)
 
             # Compute ATE
             ate = self.compute_ATE(poses_gt, poses_result)
