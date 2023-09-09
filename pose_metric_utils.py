@@ -1,10 +1,19 @@
+from collections import OrderedDict
+import copy
 from typing import Dict, Tuple
 
+from evo.core.trajectory import PosePath3D
+import matplotlib.pylab as plt
 import numpy as np
 
 from kitti_odom_eval_conf import *
 
 """Preprocess"""
+
+
+def __2ndarray_list(serial2pose):
+    keys = sorted(list(serial2pose.keys()))
+    return [serial2pose[id] for id in keys]
 
 
 def __trajectory_distances(poses):
@@ -226,3 +235,52 @@ def compute_ate(gt: Dict[int, np.ndarray], pred: Dict[int, np.ndarray]) -> float
         errors.append(np.sqrt(np.sum(align_err ** 2)))
     ate = np.sqrt(np.mean(np.asarray(errors) ** 2))
     return ate
+
+
+def umeyama_alignment(gt: Dict[int, np.ndarray], pred: Dict[int, np.ndarray]) -> Dict[int, np.ndarray]:
+    """Scale alignment given the ground-truth trajectory represented as the (4x4) poses
+
+    Parameters
+    ----------
+    gt : Dict[int, np.ndarray]
+        gt (4x4 array dict): ground-truth poses with serial indices
+    pred : Dict[int, np.ndarray]
+        pred (4x4 array dict): predicted poses with serial indices
+
+    Returns
+    -------
+    Dict[int, np.ndarray]
+        scale aligned predictions with serial indices
+    """
+
+    def _assign_id_to_traj(traj: np.ndarray) -> Dict[int, np.ndarray]:
+        return OrderedDict({k: traj[k] for k in range(len(traj))})
+
+    predicted_trajectory = PosePath3D(poses_se3=__2ndarray_list(pred))
+    gt_traj: PosePath3D = PosePath3D(poses_se3=__2ndarray_list(gt))
+
+    # Umeyama alignment with scaling only
+    predicted_trajectory_aligned = copy.deepcopy(predicted_trajectory)
+    predicted_trajectory_aligned.align(gt_traj, correct_only_scale=True)
+    id2poses = _assign_id_to_traj(np.array(predicted_trajectory_aligned.poses_se3))
+    return id2poses
+
+
+def get_plot_arguments(poses: Dict[int, np.ndarray]) -> tuple:
+    """Plot trajectory for both GT and prediction
+    Args:
+        poses (dict): {idx: 4x4 array}; ground truth poses
+    """
+    pos_xz = []
+    frame_idx_list = sorted(poses.keys())
+    for frame_idx in frame_idx_list:
+        pose = poses[frame_idx]
+        pos_xz.append([pose[0, 3], pose[2, 3]])
+    pos_xz = np.asarray(pos_xz)
+    return pos_xz[:, 0], pos_xz[:, 1]
+
+
+def get_distance(poses: Dict[int, np.ndarray]) -> float:
+    """ Get distance of the trajectory"""
+    pose_path = PosePath3D(poses_se3=__2ndarray_list(poses))
+    return pose_path.path_length
