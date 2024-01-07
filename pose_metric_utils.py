@@ -284,3 +284,59 @@ def get_distance(poses: Dict[int, np.ndarray]) -> float:
     """ Get distance of the trajectory"""
     pose_path = PosePath3D(poses_se3=__2ndarray_list(poses))
     return pose_path.path_length
+
+
+def init_fig_ax() -> tuple:
+    """
+    To feed the second return into the plot_trajectory(), then call plt.show()
+    [Note] Requires `apt-get install python3-tk`
+    (e.g.)
+        ```
+        fig, ax = init_fig_ax()
+        plot_trajectory(ax, id2gt_traj, label="GT") # id2gt_traj: Dict[int, np.ndarray(4x4)]
+        plt.show()
+        ```
+    """
+    fig = plt.figure()
+    ax = plt.gca()
+    ax.set_aspect('equal')
+    fig.set_size_inches(10, 10)
+    return fig, ax
+
+
+def plot_trajectory(ax, poses: Dict[int, np.ndarray], **kwargs) -> None:
+    """
+    Draw the trajectory given the ID to SE(3) pose trajectory
+
+    Parameters
+    ----------
+    ax:
+        Initialized `ax` instance from matplot lib
+    poses: Dict[int, np.ndarray]
+        Index of the time series to 4x4 pose
+    kwargs:
+        Keyword arguments for ax.plot()
+        (e.g.) `label` for legend, `ls` for line-style specification ... 
+
+    Returns
+    -------
+
+    """
+    x, y = get_plot_arguments(poses=poses)
+    ax.plot(x, y, **kwargs)
+    pass
+
+
+def posepath3d_to_id2se3(posepath3d: PosePath3D) -> Dict[int, np.ndarray]:
+    """
+    posepath3d: PosePath3D
+        Trajectory to evaluate
+
+    Returns
+    -------
+    Dict[int, np.ndarray]
+        Trajectory to be processed
+    """
+    traj = np.array(posepath3d.poses_se3)  # (len, 4, 4)
+    id2se3 = OrderedDict({k: traj[k] for k in range(len(traj))})  # Dict[int, np.ndarray(4x4)]
+    return id2se3
