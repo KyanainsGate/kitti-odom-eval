@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import copy
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 from evo.core.trajectory import PosePath3D
 import matplotlib.pylab as plt
@@ -237,7 +237,8 @@ def compute_ate(gt: Dict[int, np.ndarray], pred: Dict[int, np.ndarray]) -> float
     return ate
 
 
-def umeyama_alignment(gt: Dict[int, np.ndarray], pred: Dict[int, np.ndarray]) -> Dict[int, np.ndarray]:
+def umeyama_alignment(gt: Dict[int, np.ndarray], pred: Dict[int, np.ndarray],
+                      **kwargs: Any) -> Dict[int, np.ndarray]:
     """Scale alignment given the ground-truth trajectory represented as the (4x4) poses
 
     Parameters
@@ -246,6 +247,9 @@ def umeyama_alignment(gt: Dict[int, np.ndarray], pred: Dict[int, np.ndarray]) ->
         gt (4x4 array dict): ground-truth poses with serial indices
     pred : Dict[int, np.ndarray]
         pred (4x4 array dict): predicted poses with serial indices
+    kwargs: Any
+        Arguments for PosePath3D.align() method. See the following for details:
+        https://github.com/MichaelGrupp/evo/blob/master/evo/core/trajectory.py#L232
 
     Returns
     -------
@@ -259,9 +263,11 @@ def umeyama_alignment(gt: Dict[int, np.ndarray], pred: Dict[int, np.ndarray]) ->
     predicted_trajectory = PosePath3D(poses_se3=__2ndarray_list(pred))
     gt_traj: PosePath3D = PosePath3D(poses_se3=__2ndarray_list(gt))
 
-    # Umeyama alignment with scaling only
+    if kwargs == {}:
+        # Default: Umeyama alignment with scaling only
+        kwargs = {'correct_only_scale': True}
     predicted_trajectory_aligned = copy.deepcopy(predicted_trajectory)
-    predicted_trajectory_aligned.align(gt_traj, correct_only_scale=True)
+    predicted_trajectory_aligned.align(gt_traj, **kwargs)
     id2poses = _assign_id_to_traj(np.array(predicted_trajectory_aligned.poses_se3))
     return id2poses
 
