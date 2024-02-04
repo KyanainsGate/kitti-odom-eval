@@ -292,7 +292,7 @@ def get_distance(poses: Dict[int, np.ndarray]) -> float:
     return pose_path.path_length
 
 
-def init_fig_ax() -> tuple:
+def init_fig_ax(w=10, h=10) -> tuple:
     """
     To feed the second return into the plot_trajectory(), then call plt.show()
     [Note] Requires `apt-get install python3-tk`
@@ -306,7 +306,7 @@ def init_fig_ax() -> tuple:
     fig = plt.figure()
     ax = plt.gca()
     ax.set_aspect('equal')
-    fig.set_size_inches(10, 10)
+    fig.set_size_inches(w, h)
     return fig, ax
 
 
