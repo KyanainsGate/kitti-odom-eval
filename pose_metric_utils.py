@@ -329,6 +329,12 @@ def plot_trajectory(ax, poses: Dict[int, np.ndarray], **kwargs) -> None:
 
     """
     x, y = get_plot_arguments(poses=poses)
+    print('rot' in kwargs.keys())
+    if kwargs is not None and 'rot' in kwargs.keys():
+        if kwargs['rot'] is not None:
+            x, y = __rotate_coordinates(x, y, rot=kwargs['rot'])
+        kwargs.pop('rot')
+        pass
     ax.plot(x, y, **kwargs)
     pass
 
@@ -346,3 +352,10 @@ def posepath3d_to_id2se3(posepath3d: PosePath3D) -> Dict[int, np.ndarray]:
     traj = np.array(posepath3d.poses_se3)  # (len, 4, 4)
     id2se3 = OrderedDict({k: traj[k] for k in range(len(traj))})  # Dict[int, np.ndarray(4x4)]
     return id2se3
+
+
+def __rotate_coordinates(x, y, rot=30):
+    angle = np.deg2rad(rot)
+    x_rot = x * np.cos(angle) - y * np.sin(angle)
+    y_rot = x * np.sin(angle) + y * np.cos(angle)
+    return x_rot, y_rot
